@@ -1,0 +1,5 @@
+name: Facebook Posts
+description: Syncs Posts from a Facebook Page to a special Content Type in Drupal
+package: Facebook
+type: module
+core: 8.x
