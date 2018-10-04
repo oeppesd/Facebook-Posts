@@ -3,3 +3,4 @@ description: Syncs Posts from a Facebook Page to a special Content Type in Drupa
 package: Facebook
 type: module
 core: 8.x
+php: 7.1
