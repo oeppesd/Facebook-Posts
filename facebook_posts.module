@@ -6,6 +6,5 @@ namespace facebook_posts;
 * implements hook_cron()
 */
 facebook_posts_cron() {
-  Drupal::logger('facebook_posts')
-      ->notice('facebook_posts ran');
+
 }
