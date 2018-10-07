@@ -1,0 +1,14 @@
+{
+  "name": "oeppesd/facebook_posts",
+  "description": "A Module used to map and sync the posts of a facebook page to a content Type in Drupal",
+  "type": "drupal-module",
+  "authors": [
+    {
+      "name": "Justus Schneider",
+      "role": "Maintainer"
+    }
+  ],
+  "require": {
+    "facebook/graph-sdk": "5.*"
+  }
+}
