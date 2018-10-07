@@ -1,6 +1,6 @@
 <?php
 
-namespace facebook_posts;
+//namespace facebook_posts;
 
 /*
 * implements hook_cron()
