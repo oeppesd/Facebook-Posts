@@ -5,6 +5,6 @@ namespace facebook_posts;
 /*
 * implements hook_cron()
 */
-facebook_posts_cron() {
+/*facebook_posts_cron() {
 
-}
+}*/
