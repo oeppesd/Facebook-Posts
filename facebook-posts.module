@@ -1,0 +1,10 @@
+<?php
+
+namespace facebook_posts;
+
+/*
+* implements hook_cron()
+*/
+facebook_posts_cron(){
+  drupal_set_message("Abcdefg");
+}
