@@ -1,11 +1,38 @@
 <?php
+require __DIR__ . '/vendor/autoload.php';
+use Facebook\Facebook;
+use Facebook\FacebookRequest;
 
-namespace facebook_posts;
+define("APP_ID", "487649851752118");
+define("APP_SECRET", "7a9f222a721bc3f716f04c15e0313c59");
+define("GRAPH_VERSION", "v3.1");
+define("ACCESS_TOKEN", "EAAG7g9QwPrYBAN2fypZBNu1IIZCx9TcEz62YuZA3txaKJdVlsplcxB3ZB7ZAsZCV7xtXGl1ybKzmOXdSKKd3UBsYP5CwZCqCE5Gc8NA8iB9GDFdyAG4c2WRzj9xf5AqZAc6nXmlJ3bIlRGinlSnDAecvH5iB5LgxskhrPnW9JZBfghW29ULKvgHpZCrPeATVp4g4oZD");
 
 /*
 * implements hook_cron()
 */
 function facebook_posts_cron() {
-  Drupal::logger('facebook_posts')
-      ->notice('facebook_posts ran');
+  $facebook = new \Facebook\Facebook([
+    'app_id' => APP_ID,
+    'app_secret' => APP_SECRET,
+    'default_graph_version' => GRAPH_VERSION,
+    'default_access_token' => ACCESS_TOKEN
+  ]);
+
+  try {
+    $response = $facebook->get('avwidukind/feed');
+
+  }
+  catch(\Facebook\Exceptions\FacebookResponseException $e) {
+    drupal_set_message('Graph returned an error: ' . $e->getMessage());
+    exit;
+  } catch(\Facebook\Exceptions\FacebookSDKException $e) {
+    // When validation fails or other local issues
+    drupal_set_message('Facebook SDK returned an error: ' . $e->getMessage());
+    exit;
+  }
+  $feedItems = $response->getGraphEdge();
+  foreach($feedItems as $current){
+      drupal_set_message(print_r($current, true));
+  }
 }
