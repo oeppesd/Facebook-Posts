@@ -6,7 +6,7 @@ use Facebook\FacebookRequest;
 define("APP_ID", "487649851752118");
 define("APP_SECRET", "7a9f222a721bc3f716f04c15e0313c59");
 define("GRAPH_VERSION", "v3.1");
-define("ACCESS_TOKEN", "");
+define("ACCESS_TOKEN", "EAAG7g9QwPrYBAIyUS2upzJbAVA6sr4cviUW2pTi9FJ4ZCHC3bsBoMJqWa1cRNqdtMmDa7YnPr88iN3KWukZAsQPH5zdo4MWOZCzxYNTTZBDrawBYtf1t8q4ncxcoUR7IgfNCNAFdDuCrrHds1Xe6tttDQGwEbY0BZCMe55HFq1QZDZD");
 
 /*
 * implements hook_cron()
@@ -19,20 +19,91 @@ function facebook_posts_cron() {
     'default_access_token' => ACCESS_TOKEN
   ]);
 
-  try {
-    $response = $facebook->get('avwidukind/feed');
-
-  }
-  catch(\Facebook\Exceptions\FacebookResponseException $e) {
-    drupal_set_message('Graph returned an error: ' . $e->getMessage());
-    return;
-  } catch(\Facebook\Exceptions\FacebookSDKException $e) {
-    // When validation fails or other local issues
-    drupal_set_message('Facebook SDK returned an error: ' . $e->getMessage());
-    return;
-  }
-  $feedItems = $response->getGraphEdge();
+  $fields = ['full_picture', 'id', 'edit_actions{edit_time}', 'message', 'created_time', 'link', 'story'];
+  $feedItems = _facebook_posts_getFeed($facebook, 'avwidukind', $fields);
   foreach($feedItems as $current){
-      drupal_set_message(print_r($current, true));
+      $postId = $current->getField('id');
+      $node = _facebook_posts_findPostById($postId);
+      if($node != null) \Drupal::logger('facebook_posts')->error("Post Id: ".$postId." Node: ".$node->getTitle());
+      //get Time of newest Edit Action
+      $lastEditedFacebook = null;
+      $editActions = $current->getField('edit_actions');
+      if($editActions != null){
+        foreach ($editActions as $currentEditAction) {
+          if($lastEditedFacebook == null || $lastEditedFacebook < new DateTime($currentEditAction->getField('edit_time'))){
+            $lastEditedFacebook = new DateTime($currentEditAction->getField('edit_time'));
+          }
+        }
+      }
+      else {
+        $lastEditedFacebook = $current->getField('created_time');
+      }
+
+      if($node != null) { //Find out if node needs to be updated. Continue if not
+        $lastEditedDrupal = $node->get('field_last_edited');
+
+        //If Drupal Object is newer than facebook, don't update it
+        if($lastEditedDrupal > $lastEditedFacebook){
+          continue;
+        }
+      }
+      else { //Create a new Node to work with
+        $node = \Drupal\node\Entity\Node::create([
+          'type' => 'facebook_post'
+        ]);
+      }
+      $node->setTitle($current->getField('id'));
+      $node->setCreatedTime($current->getField('created_time')->getTimestamp());
+      $node->set('body', $current->getField('message'));
+      $node->set('field_post_id', $current->getField('id'));
+      $node->set('field_post_image', $current->getField('full_picture'));
+      $node->set('field_link', $current->getField('link'));
+      $node->set('field_story', $current->getField('story'));
+      $node->set('field_last_edited', $lastEditedFacebook->getTimestamp());
+;
+      $node->save();
   }
+
+
+}
+
+function _facebook_posts_getFeed($fb, $pageID, $fields) {
+  $requestURL = $pageID.'/feed';
+  if(count($fields) > 0){
+    $requestURL = $requestURL.'?fields='.$fields[0];
+  }
+  for($i = 1; $i < count($fields); $i++) {
+    $requestURL = $requestURL.','.$fields[$i];
+  }
+
+  try {
+    $response = $fb->get($requestURL);
+    $feedItems = $response->getGraphEdge();
+    return $feedItems;
+  }
+  catch(\Facebook\Exceptions\FacebookResponseException $e){
+    \Drupal::logger('facebook_posts')->error("Graph API Error: ".$e->getMessage());
+    return null;
+  }
+  catch(\Facebook\Exceptions\FacebookSDKException $e){
+    \Drupal::logger('facebook_posts')->error("Facebook SDK Error: ".$e->getMessage());
+    return null;
+  }
+
+}
+
+function _facebook_posts_findPostById($id){
+  $query = \Drupal::entityQuery('node');
+  $query->condition('type', 'facebook_post')
+  ->condition('field_post_id', $id);
+
+  $nids = $query->execute();
+  if(count($nids) == 0) return null;
+
+  $nodeStorage = \Drupal::entityManager()->getStorage('node');
+  foreach ($nids as $nid) {
+    return $nodeStorage->load($nid);
+  }
+  /*$node = $nodeStorage->load($nids);
+  return $node;*/
 }
