@@ -6,7 +6,7 @@ use Facebook\FacebookRequest;
 define("APP_ID", "487649851752118");
 define("APP_SECRET", "7a9f222a721bc3f716f04c15e0313c59");
 define("GRAPH_VERSION", "v3.1");
-define("ACCESS_TOKEN", "EAAG7g9QwPrYBAIyUS2upzJbAVA6sr4cviUW2pTi9FJ4ZCHC3bsBoMJqWa1cRNqdtMmDa7YnPr88iN3KWukZAsQPH5zdo4MWOZCzxYNTTZBDrawBYtf1t8q4ncxcoUR7IgfNCNAFdDuCrrHds1Xe6tttDQGwEbY0BZCMe55HFq1QZDZD");
+define("ACCESS_TOKEN", "");
 
 /*
 * implements hook_cron()
